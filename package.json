@@ -1,0 +1,29 @@
+{
+	"name": "counthours-backend",
+	"version": "1.0.0",
+	"description": "api counthours",
+	"main": "index.ts",
+	"scripts": {
+		"dev": "npx nodemon src/index.ts",
+		"test": "test"
+	},
+	"dependencies": {
+		"@types/knex": "^0.16.1",
+		"cors": "^2.8.5",
+		"dayjs": "^1.11.11",
+		"dotenv": "^16.4.5",
+		"express": "^4.19.2",
+		"knex": "^3.1.0",
+		"nodemon": "^3.1.0",
+		"pg": "^8.11.5",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.4.5",
+		"uuid": "^9.0.1"
+	},
+	"devDependencies": {
+		"@types/cors": "^2.8.17",
+		"@types/express": "^4.17.21"
+	},
+	"author": "Gabriel Azevedo",
+	"license": "ISC"
+}
