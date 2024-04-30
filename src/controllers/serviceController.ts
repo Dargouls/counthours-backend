@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import { Request, Response } from 'express';
 
 const connection = require('../database/connection');
+const { v4: uuidv4 } = require('uuid');
 
 interface ServiceForUpdate {
 	name?: string | undefined;
@@ -20,12 +21,14 @@ module.exports = {
 
 		try {
 			await connection('Service').insert({
+				id: uuidv4(),
 				name,
 				user_id,
 				start_date: start,
 				end_date: isNaN(Number(end)) ? null : null,
 			});
 		} catch (error) {
+			console.log(error);
 			return response.status(400).json({ message: 'Não foi possível criar serviço' });
 		}
 
@@ -43,10 +46,11 @@ module.exports = {
 
 		try {
 			await connection('Service').where('id', id).update(service);
+			return response.status(200).send({ message: 'Service updated!' });
 		} catch (error) {
+			console.log(error);
 			return response.status(400).json({ message: 'Não foi possível atualizar o Serviço' });
 		}
-		return response.status(200).send({ message: 'Service updated!' });
 	},
 
 	async findAll(request: Request, response: Response) {
@@ -91,6 +95,7 @@ module.exports = {
 				.select('*')
 				.orderBy('id', 'desc');
 
+			console.log(services);
 			return response.json(services);
 		} catch (error) {
 			return response.status(404).json({ message: 'Serviços não encontrados' });

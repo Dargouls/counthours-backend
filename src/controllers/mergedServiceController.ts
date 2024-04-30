@@ -4,11 +4,13 @@ const connection = require('../database/connection');
 const { v4: uuidv4 } = require('uuid');
 
 interface IService {
-	id: number;
+	id: string;
 	name: string;
 	user_id: string;
 	start_date: string;
 	end_date: string;
+	is_merged: boolean; //Quando ele é um dos serviços que se fundiu
+	is_principal: boolean; //Quando ele é o serviço resultante da fusão
 }
 
 module.exports = {
@@ -17,19 +19,28 @@ module.exports = {
 
 		let servicesList: IService[] = [];
 		try {
-			servicesList = await connection('Service')
-				.select('*') // ou selecione colunas específicas que você precisa
-				.whereIn('id', ids);
+			servicesList = await connection('Service').select('*').whereIn('id', ids);
+
+			if (servicesList.length === 0)
+				return response.status(202).json({ message: 'Serviços não encontrados' });
 		} catch (error) {
-			return response.status(400).json({ message: 'Não foram encontrados estes períodos' });
+			console.error('Erro ao buscar serviços: ', error);
+			return response.status(500).json({ message: 'Erro ao buscar serviços' });
 		}
 
-		const minorService = servicesList.reduce((acc, actual) => {
-			return new Date(acc?.start_date) < new Date(actual?.start_date) ? acc : actual;
-		});
-		const majorService = servicesList.reduce((acc, actual) => {
-			return new Date(acc?.end_date) > new Date(actual?.end_date) ? acc : actual;
-		});
+		//Verifica a menor e maior data
+		const majorService = servicesList.reduce(
+			(acc, actual) => {
+				return new Date(acc?.end_date) > new Date(actual?.end_date) ? acc : actual;
+			},
+			{ end_date: '1970-01-01T00:00:00.000Z' }
+		);
+		const minorService = servicesList.reduce(
+			(acc, actual) => {
+				return new Date(acc?.start_date) < new Date(actual?.start_date) ? acc : actual;
+			},
+			{ start_date: majorService.end_date }
+		);
 
 		let totalHours = 0;
 		let totalMinutes = 0;
@@ -41,8 +52,12 @@ module.exports = {
 		totalHours += Math.floor(totalMinutes / 60);
 		totalMinutes = totalMinutes % 60;
 
+		if (isNaN(totalHours) || isNaN(totalMinutes))
+			return response.status(400).json({ message: 'Um dos valores é NaN' });
+
 		try {
-			const servicesMerged = await connection('MergedServices').insert(
+			//faz o merge criando um novo serviço
+			const servicesMerged: any = await connection('Service').insert(
 				{
 					id: uuidv4(),
 					name,
@@ -50,17 +65,21 @@ module.exports = {
 					total_hours: `${totalHours}:${totalMinutes}`,
 					start_date: minorService.start_date,
 					end_date: majorService.end_date,
+					is_merged: false,
+					is_principal: true,
 				},
 				['id']
 			);
 
+			//Pega todos os que foram fundidos e adiciona os relacionamentos
 			const mergeRelationships = servicesList.map((service) => ({
 				service_id: service.id,
 				merge_id: servicesMerged[0].id,
 			}));
-
 			await connection('MergeRelationship').insert(mergeRelationships);
 			await connection('Service').whereIn('id', ids).update({ is_merged: true });
+
+			return response.status(200).json({ message: 'Serviços mesclados com sucesso!' });
 		} catch (err) {
 			console.log(err);
 			return response.status(400).json({ message: 'Não foi possível mesclar os serviços' });
@@ -68,7 +87,7 @@ module.exports = {
 	},
 	async findAll(request: Request, response: Response) {
 		try {
-			const services = await connection('MergedServices').select('*');
+			const services = await connection('Service').select('*');
 			return response.json(services);
 		} catch (error) {
 			return response.status(404).json({ message: 'Serviços não encontrados' });
@@ -78,18 +97,12 @@ module.exports = {
 	async findAllByUserId(request: Request, response: Response) {
 		const { userId } = request.params;
 		try {
-			const mergedService = await connection('MergedServices').where('id', userId).select('*');
 			const services = await connection('Service')
 				.where('user_id', userId)
-				// .whereNot('is_merged', true)
-				.select('*')
-				.orderBy('id', 'desc');
+				.andWhere('is_merged', false || null)
+				.select('*');
 
-			const all = await Promise.all([mergedService, services]).then((result) =>
-				result[0].concat(result[1])
-			);
-
-			return response.json(all);
+			return response.json(services);
 		} catch (error) {
 			return response.status(404).json({ message: 'Serviço não encontrado' });
 		}
