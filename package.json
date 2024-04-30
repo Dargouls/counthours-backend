@@ -5,6 +5,7 @@
 	"main": "index.ts",
 	"scripts": {
 		"dev": "npx nodemon src/index.ts",
+		"build": "npm run build",
 		"test": "test"
 	},
 	"dependencies": {
