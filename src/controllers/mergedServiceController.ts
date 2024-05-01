@@ -99,7 +99,8 @@ module.exports = {
 		try {
 			const services = await connection('Service')
 				.where('user_id', userId)
-				.andWhere('is_merged', false || null)
+				.andWhere('is_merged', false)
+				.orWhereNull('is_merged')
 				.select('*');
 
 			return response.json(services);

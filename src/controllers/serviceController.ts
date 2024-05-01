@@ -46,6 +46,7 @@ module.exports = {
 
 		try {
 			await connection('Service').where('id', id).update(service);
+			console.log('Service updated! ', id), service;
 			return response.status(200).send({ message: 'Service updated!' });
 		} catch (error) {
 			console.log(error);
