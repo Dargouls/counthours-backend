@@ -28,6 +28,12 @@ routes.get('/service/user/:userId', (request: Request, response: Response) => {
 routes.get('/services/user/:userId', (request: Request, response: Response) => {
 	return ServiceController.findAllByUserId(request, response);
 });
+routes.delete('/services/:id', (request: Request, response: Response) => {
+	return ServiceController.deleteById(request, response);
+});
+routes.patch('/services/end/:id', (request: Request, response: Response) => {
+	return ServiceController.updateEndDate(request, response);
+});
 
 routes.post('/services/merge', (request: Request, response: Response) => {
 	return MergedServiceController.mergeServices(request, response);

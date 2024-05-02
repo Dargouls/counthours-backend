@@ -24,8 +24,8 @@ module.exports = {
 				id: uuidv4(),
 				name,
 				user_id,
-				start_date: start,
-				end_date: isNaN(Number(end)) ? null : null,
+				start_date: dayjs(start_date).toISOString(),
+				end_date: null,
 			});
 		} catch (error) {
 			console.log(error);
@@ -41,8 +41,8 @@ module.exports = {
 		let service: ServiceForUpdate = {};
 
 		if (name) service.name = name;
-		if (start_date) service.start_date = dayjs(start_date).format();
-		if (end_date) service.end_date = dayjs(end_date).format();
+		if (start_date) service.start_date = dayjs(start_date).toISOString();
+		if (end_date) service.end_date = dayjs(end_date).toISOString();
 
 		try {
 			await connection('Service').where('id', id).update(service);
@@ -97,9 +97,33 @@ module.exports = {
 				.orderBy('id', 'desc');
 
 			console.log(services);
+
 			return response.json(services);
 		} catch (error) {
 			return response.status(404).json({ message: 'Serviços não encontrados' });
+		}
+	},
+
+	async updateEndDate(request: Request, response: Response) {
+		const { id } = request.params;
+
+		try {
+			await connection('Service').where('id', id).update({ end_date: dayjs().toISOString() });
+			return response.status(200).send({ message: 'Service updated!' });
+		} catch (error) {
+			console.log(error);
+			return response.status(400).json({ message: 'Não foi possível atualizar o Serviço' });
+		}
+	},
+
+	async deleteById(request: Request, response: Response) {
+		const { id } = request.params;
+		try {
+			await connection('Service').where('id', id).delete();
+			return response.status(200).send({ message: 'Service deleted!' });
+		} catch (error) {
+			console.log(error);
+			return response.status(400).json({ message: 'Não foi possível deletar o Serviço' });
 		}
 	},
 };

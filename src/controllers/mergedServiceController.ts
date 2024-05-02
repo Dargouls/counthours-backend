@@ -31,29 +31,29 @@ module.exports = {
 		//Verifica a menor e maior data
 		const majorService = servicesList.reduce(
 			(acc, actual) => {
-				return new Date(acc?.end_date) > new Date(actual?.end_date) ? acc : actual;
+				return dayjs(acc?.end_date).toISOString() > dayjs(actual?.end_date).toISOString()
+					? acc
+					: actual;
 			},
 			{ end_date: '1970-01-01T00:00:00.000Z' }
 		);
 		const minorService = servicesList.reduce(
 			(acc, actual) => {
-				return new Date(acc?.start_date) < new Date(actual?.start_date) ? acc : actual;
+				return dayjs(acc?.start_date).toISOString() < dayjs(actual?.start_date).toISOString()
+					? acc
+					: actual;
 			},
 			{ start_date: majorService.end_date }
 		);
 
-		let totalHours = 0;
-		let totalMinutes = 0;
+		let totalTime = 0;
 
 		servicesList.forEach((service) => {
-			totalHours += dayjs(service.end_date).diff(dayjs(service.start_date), 'hour');
-			totalMinutes += dayjs(service.end_date).diff(dayjs(service.start_date), 'minute') % 60;
+			totalTime += dayjs(service.end_date).diff(dayjs(service.start_date));
 		});
-		totalHours += Math.floor(totalMinutes / 60);
-		totalMinutes = totalMinutes % 60;
 
-		if (isNaN(totalHours) || isNaN(totalMinutes))
-			return response.status(400).json({ message: 'Um dos valores é NaN' });
+		if (isNaN(totalTime) || totalTime < 0)
+			return response.status(400).json({ message: 'Horas negativas' });
 
 		try {
 			//faz o merge criando um novo serviço
@@ -62,10 +62,10 @@ module.exports = {
 					id: uuidv4(),
 					name,
 					user_id,
-					total_hours: `${totalHours}:${totalMinutes}`,
-					start_date: minorService.start_date,
-					end_date: majorService.end_date,
-					is_merged: false,
+					total_hours: totalTime,
+					start_date: dayjs(minorService.start_date).toISOString(),
+					end_date: dayjs(majorService.end_date).toISOString(),
+					is_merged: null,
 					is_principal: true,
 				},
 				['id']
