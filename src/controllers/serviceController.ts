@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import { Request, Response } from 'express';
 
 const connection = require('../database/connection');
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4, validate } = require('uuid');
 
 interface ServiceForUpdate {
 	name?: string | undefined;
@@ -12,27 +12,25 @@ interface ServiceForUpdate {
 
 module.exports = {
 	async create(request: Request, response: Response) {
-		let { name, user_id, start_date, end_date } = request.body;
+		let { name, user_id, start_date } = request.body;
 
 		if (!start_date) return response.status(400).json({ message: 'Sem data inicial' });
 
-		const start = dayjs(start_date).format('YYYY-MM-DDTHH:mm:ssZ');
-		const end = dayjs(end_date).format('YYYY-MM-DDTHH:mm:ssZ');
-
 		try {
-			await connection('Service').insert({
-				id: uuidv4(),
-				name,
-				user_id,
-				start_date: dayjs(start_date).toISOString(),
-				end_date: null,
-			});
+			const service = await connection('Service')
+				.insert({
+					id: uuidv4(),
+					name,
+					user_id,
+					start_date: dayjs(start_date).toISOString(),
+					end_date: null,
+				})
+				.returning('*');
+			return response.status(200).send({ service: service[0], message: 'Service created!' });
 		} catch (error) {
 			console.log(error);
 			return response.status(400).json({ message: 'Não foi possível criar serviço' });
 		}
-
-		return response.status(200).send({ message: 'Service created!' });
 	},
 
 	async update(request: Request, response: Response) {
@@ -107,6 +105,8 @@ module.exports = {
 	async updateEndDate(request: Request, response: Response) {
 		const { id } = request.params;
 
+		if (!validate(id)) return response.status(500).json({ message: 'ID = undefined || null' });
+
 		try {
 			await connection('Service').where('id', id).update({ end_date: dayjs().toISOString() });
 			return response.status(200).send({ message: 'Service updated!' });
@@ -118,12 +118,17 @@ module.exports = {
 
 	async deleteById(request: Request, response: Response) {
 		const { id } = request.params;
+		if (!id) return response.status(400).json({ message: 'ID = undefined || null' });
+		const ids = id.split(',');
+
 		try {
-			await connection('Service').where('id', id).delete();
-			return response.status(200).send({ message: 'Service deleted!' });
+			await connection('Service').whereIn('id', ids).delete();
+			return response.status(200).send({ data: ids, message: 'Service deleted!' });
 		} catch (error) {
 			console.log(error);
-			return response.status(400).json({ message: 'Não foi possível deletar o Serviço' });
+			return response
+				.status(400)
+				.json({ data: ids, message: 'Não foi possível deletar o Serviço' });
 		}
 	},
 };
