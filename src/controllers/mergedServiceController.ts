@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import { Request, Response } from 'express';
-const connection = require('../database/connection');
-const { v4: uuidv4 } = require('uuid');
+import connection from '../database/connection';
+import { v4 as uuidv4 } from 'uuid';
 
 interface IService {
 	id: string;
@@ -13,7 +13,7 @@ interface IService {
 	is_principal: boolean; //Quando ele é o serviço resultante da fusão
 }
 
-module.exports = {
+class MergedServiceController {
 	async mergeServices(request: Request, response: Response) {
 		const { name, user_id, ids } = request.body;
 
@@ -84,7 +84,8 @@ module.exports = {
 			console.log(err);
 			return response.status(400).json({ message: 'Não foi possível mesclar os serviços' });
 		}
-	},
+	}
+
 	async findAll(request: Request, response: Response) {
 		try {
 			const services = await connection('Service').select('*');
@@ -92,7 +93,7 @@ module.exports = {
 		} catch (error) {
 			return response.status(404).json({ message: 'Serviços não encontrados' });
 		}
-	},
+	}
 
 	async findAllByUserId(request: Request, response: Response) {
 		const { userId } = request.params;
@@ -107,5 +108,7 @@ module.exports = {
 		} catch (error) {
 			return response.status(404).json({ message: 'Serviço não encontrado' });
 		}
-	},
-};
+	}
+}
+
+export { MergedServiceController };

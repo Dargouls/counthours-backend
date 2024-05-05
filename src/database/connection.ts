@@ -1,6 +1,6 @@
 import knex from 'knex';
 
-const config = require('../../knexfile');
+import config from '../../knexfile';
 const connection = knex(config);
 
-module.exports = connection;
+export default connection;

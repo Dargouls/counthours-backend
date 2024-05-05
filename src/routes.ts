@@ -1,52 +1,50 @@
 import { Request, Response, Router } from 'express';
-const ServiceController = require('./controllers/serviceController');
-const MergedServiceController = require('./controllers/mergedServiceController');
-const UserController = require('./controllers/userControler');
+import { ServiceController } from './controllers/serviceController';
+import { MergedServiceController } from './controllers/mergedServiceController';
 
 const routes = Router();
+const serviceController = new ServiceController();
+const mergedServiceController = new MergedServiceController();
 
 routes.get('/', (request: Request, response: Response) => {
 	return response.send(
 		'Sejá Bem vindo ao Back-End do App APT, contact um Administrador para entender as rotas! '
 	);
 });
+
 routes.get('/services', (request: Request, response: Response) => {
-	return ServiceController.findAll(request, response);
+	return serviceController.findAll(request, response);
 });
 routes.post('/services', (request: Request, response: Response) => {
-	return ServiceController.create(request, response);
+	return serviceController.create(request, response);
 });
 routes.patch('/service/update/:id', (request: Request, response: Response) => {
-	return ServiceController.update(request, response);
+	return serviceController.update(request, response);
 });
 routes.get('/services/:id', (request: Request, response: Response) => {
-	return ServiceController.findById(request, response);
+	return serviceController.findById(request, response);
 });
 routes.get('/service/user/:userId', (request: Request, response: Response) => {
-	return ServiceController.findByUserId(request, response);
+	return serviceController.findByUserId(request, response);
 });
 routes.get('/services/user/:userId', (request: Request, response: Response) => {
-	return ServiceController.findAllByUserId(request, response);
+	return serviceController.findAllByUserId(request, response);
 });
 routes.delete('/services/:id', (request: Request, response: Response) => {
-	return ServiceController.deleteById(request, response);
+	return serviceController.deleteById(request, response);
 });
 routes.patch('/services/end/:id', (request: Request, response: Response) => {
-	return ServiceController.updateEndDate(request, response);
+	return serviceController.updateEndDate(request, response);
 });
 
 routes.post('/services/merge', (request: Request, response: Response) => {
-	return MergedServiceController.mergeServices(request, response);
+	return mergedServiceController.mergeServices(request, response);
 });
 routes.get('/services/all/:userId', (request: Request, response: Response) => {
-	return MergedServiceController.findAllByUserId(request, response);
+	return mergedServiceController.findAllByUserId(request, response);
 });
 routes.get('/services/all', (request: Request, response: Response) => {
-	return MergedServiceController.findAll(request, response);
+	return mergedServiceController.findAll(request, response);
 });
 
-routes.post('/create-account', (request: Request, response: Response) => {
-	return UserController.create(request, response);
-});
-
-module.exports = routes;
+export default routes;

@@ -1,16 +1,15 @@
 import dayjs from 'dayjs';
 import { Request, Response } from 'express';
 
-const connection = require('../database/connection');
-const { v4: uuidv4, validate } = require('uuid');
+import connection from '../database/connection';
+import { v4 as uuidv4, validate } from 'uuid';
 
 interface ServiceForUpdate {
 	name?: string | undefined;
 	start_date?: string | undefined;
 	end_date?: string | undefined;
 }
-
-module.exports = {
+class ServiceController {
 	async create(request: Request, response: Response) {
 		let { name, user_id, start_date } = request.body;
 
@@ -31,7 +30,7 @@ module.exports = {
 			console.log(error);
 			return response.status(400).json({ message: 'Não foi possível criar serviço' });
 		}
-	},
+	}
 
 	async update(request: Request, response: Response) {
 		const { id } = request.params;
@@ -44,13 +43,12 @@ module.exports = {
 
 		try {
 			await connection('Service').where('id', id).update(service);
-			console.log('Service updated! ', id), service;
 			return response.status(200).send({ message: 'Service updated!' });
 		} catch (error) {
 			console.log(error);
 			return response.status(400).json({ message: 'Não foi possível atualizar o Serviço' });
 		}
-	},
+	}
 
 	async findAll(request: Request, response: Response) {
 		try {
@@ -59,7 +57,7 @@ module.exports = {
 		} catch (error) {
 			return response.status(404).json({ message: 'Serviços não encontrados' });
 		}
-	},
+	}
 
 	async findById(request: Request, response: Response) {
 		const { id } = request.params;
@@ -69,7 +67,7 @@ module.exports = {
 		} catch (error) {
 			return response.status(404).json({ error: 'Serviço não encontrado' });
 		}
-	},
+	}
 
 	async findByUserId(request: Request, response: Response) {
 		const { userId } = request.params;
@@ -84,7 +82,7 @@ module.exports = {
 		} catch (error) {
 			return response.status(404).json({ message: 'Serviço não encontrado' });
 		}
-	},
+	}
 
 	async findAllByUserId(request: Request, response: Response) {
 		const { userId } = request.params;
@@ -93,14 +91,11 @@ module.exports = {
 				.where('user_id', userId)
 				.select('*')
 				.orderBy('id', 'desc');
-
-			console.log(services);
-
 			return response.json(services);
 		} catch (error) {
 			return response.status(404).json({ message: 'Serviços não encontrados' });
 		}
-	},
+	}
 
 	async updateEndDate(request: Request, response: Response) {
 		const { id } = request.params;
@@ -114,7 +109,7 @@ module.exports = {
 			console.log(error);
 			return response.status(400).json({ message: 'Não foi possível atualizar o Serviço' });
 		}
-	},
+	}
 
 	async deleteById(request: Request, response: Response) {
 		const { id } = request.params;
@@ -130,5 +125,7 @@ module.exports = {
 				.status(400)
 				.json({ data: ids, message: 'Não foi possível deletar o Serviço' });
 		}
-	},
-};
+	}
+}
+
+export { ServiceController };
