@@ -87,8 +87,9 @@ class MergedServiceController {
 	}
 
 	async findAll(request: Request, response: Response) {
+		const { userId } = request.body;
 		try {
-			const services = await connection('Service').select('*');
+			const services = await connection('Service').select('*').where('user_id', userId);
 			return response.json(services);
 		} catch (error) {
 			return response.status(404).json({ message: 'Serviços não encontrados' });
@@ -97,16 +98,22 @@ class MergedServiceController {
 
 	async findAllByUserId(request: Request, response: Response) {
 		const { userId } = request.params;
+		if (!userId) return response.status(400).json({ message: 'userId não informado' });
+
 		try {
 			const services = await connection('Service')
 				.where('user_id', userId)
-				.andWhere('is_merged', false)
-				.orWhereNull('is_merged')
+				.andWhere(function () {
+					this.where('is_merged', false).orWhereNull('is_merged');
+				})
 				.select('*');
+
+			if (!services) throw new Error('services é null');
 
 			return response.json(services);
 		} catch (error) {
-			return response.status(404).json({ message: 'Serviço não encontrado' });
+			console.error('Erro no findAllByUserId: ', error);
+			return response.status(500).json({ message: 'Erro no findAllByUserId' });
 		}
 	}
 }

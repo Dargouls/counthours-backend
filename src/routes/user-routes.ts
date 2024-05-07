@@ -16,7 +16,8 @@ userRoutes.post('/create-account', (request: Request, response: Response) => {
 });
 
 userRoutes.post('/login', (request: Request, response: Response) => {
-	return userController.login(request, response);
+	const login = userController.login(request, response);
+	return login;
 });
 
 userRoutes.post('/verify/access-token', (request: Request, response: Response) => {
@@ -33,15 +34,14 @@ userRoutes.post('/verify/get/access-token', (request: Request, response: Respons
 	const { id, email, name, refreshToken } = request.body;
 	if (!id || !email || !name)
 		return response.status(500).json({ message: 'params refresh = undefined || null' });
-	console.log(refreshToken);
-	if (!refreshToken)
+	if (!refreshToken) {
 		return response.status(500).json({ message: 'refreshToken = undefined || null' });
-
-	if (verifyRefreshToken(refreshToken) === 'jwt expired')
+	}
+	if (verifyRefreshToken(refreshToken) === 'jwt expired') {
 		return response
 			.status(400)
 			.json({ internalCode: internalCodes.REFRESHTOKEN_EXPIRED, error: 'token expired' });
-
+	}
 	const newToken = generateToken({ id, email, name });
 	return response.status(200).json({ accessToken: newToken });
 });

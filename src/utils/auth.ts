@@ -12,7 +12,7 @@ interface PayloadUser {
 }
 
 export const generateToken = ({ id, email, name }: PayloadUser) => {
-	return jwt.sign({ id, email, name }, secretKey, { expiresIn: '15m' });
+	return jwt.sign({ id, email, name }, secretKey, { expiresIn: '1m' });
 };
 
 export const generateRefreshToken = ({ id, email, name }: PayloadUser) => {
@@ -48,12 +48,14 @@ export const authorization = (req: Request, res: Response, next: NextFunction) =
 		login: req.path.endsWith('/login'),
 		generateRefreshToken: req.path.endsWith('/get/refresh-token'),
 		generateAccessToken: req.path.endsWith('/get/access-token'),
+		services: req.path.includes('/services/all/'),
 	};
 	if (
 		freeRoutes.createAccount ||
 		freeRoutes.login ||
 		freeRoutes.generateRefreshToken ||
-		freeRoutes.generateAccessToken
+		freeRoutes.generateAccessToken ||
+		freeRoutes.services
 	)
 		return next();
 
