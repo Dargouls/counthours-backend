@@ -2,8 +2,6 @@ import bcrypt from 'bcryptjs';
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { internalCodes } from './internalCodes';
-const secretKey = '44964435-38cf-4aa1-9f7c-17b83026c580';
-const refreshSecretKey = '44964435-38cf-4aa1-9f7c-17b83026c580';
 
 interface PayloadUser {
 	id: number;
@@ -11,22 +9,28 @@ interface PayloadUser {
 	name: string;
 }
 
+const { JWT_SECRET_KEY, JWT_REFRESH_SECRET_KEY } = process.env;
+
 export const generateToken = ({ id, email, name }: PayloadUser) => {
-	return jwt.sign({ id, email, name }, secretKey, { expiresIn: '1m' });
+	if (!JWT_SECRET_KEY) throw new Error('JWT_SECRET_KEY not defined');
+	return jwt.sign({ id, email, name }, JWT_SECRET_KEY, { expiresIn: '1m' });
 };
 
 export const generateRefreshToken = ({ id, email, name }: PayloadUser) => {
-	return jwt.sign({ id, email, name }, refreshSecretKey, { expiresIn: '9d' });
+	if (!JWT_REFRESH_SECRET_KEY) throw new Error('JWT_REFRESH_SECRET_KEY not defined');
+	return jwt.sign({ id, email, name }, JWT_REFRESH_SECRET_KEY, { expiresIn: '9d' });
 };
 
 export const verifyToken = (token: string) => {
-	const verify = jwt.verify(token, secretKey);
+	if (!JWT_SECRET_KEY) throw new Error('JWT_SECRET_KEY not defined');
+	const verify = jwt.verify(token, JWT_SECRET_KEY);
 
 	return verify;
 };
 
 export const verifyRefreshToken = (token: string) => {
-	const verify = jwt.verify(token, refreshSecretKey);
+	if (!JWT_REFRESH_SECRET_KEY) throw new Error('JWT_REFRESH_SECRET_KEY not defined');
+	const verify = jwt.verify(token, JWT_REFRESH_SECRET_KEY);
 	return verify;
 };
 
@@ -60,8 +64,9 @@ export const authorization = (req: Request, res: Response, next: NextFunction) =
 		return next();
 
 	if (authHeader && authHeader.startsWith('Bearer ')) {
+		if (!JWT_SECRET_KEY) throw new Error('JWT_SECRET_KEY not defined');
 		const token = authHeader.split(' ')[1];
-		jwt.verify(token, secretKey, (e) => {
+		jwt.verify(token, JWT_SECRET_KEY, (e) => {
 			if (e?.name === 'TokenExpiredError') {
 				return res.status(401).json(internalCodes.TOKEN_EXPIRED);
 			}
