@@ -13,7 +13,7 @@ const { JWT_SECRET_KEY, JWT_REFRESH_SECRET_KEY } = process.env;
 
 export const generateToken = ({ id, email, name }: PayloadUser) => {
 	if (!JWT_SECRET_KEY) throw new Error('JWT_SECRET_KEY not defined');
-	return jwt.sign({ id, email, name }, JWT_SECRET_KEY, { expiresIn: '1m' });
+	return jwt.sign({ id, email, name }, JWT_SECRET_KEY, { expiresIn: '30m' });
 };
 
 export const generateRefreshToken = ({ id, email, name }: PayloadUser) => {
