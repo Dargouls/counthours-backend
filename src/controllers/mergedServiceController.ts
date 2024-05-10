@@ -2,16 +2,7 @@ import dayjs from 'dayjs';
 import { Request, Response } from 'express';
 import connection from '../database/connection';
 import { v4 as uuidv4 } from 'uuid';
-
-interface IService {
-	id: string;
-	name: string;
-	user_id: string;
-	start_date: string;
-	end_date: string;
-	is_merged: boolean; //Quando ele é um dos serviços que se fundiu
-	is_principal: boolean; //Quando ele é o serviço resultante da fusão
-}
+import { IService } from '../interfaces/IService';
 
 class MergedServiceController {
 	async mergeServices(request: Request, response: Response) {
@@ -49,7 +40,9 @@ class MergedServiceController {
 		let totalTime = 0;
 
 		servicesList.forEach((service) => {
-			totalTime += dayjs(service.end_date).diff(dayjs(service.start_date));
+			service?.total_hours
+				? (totalTime += service?.total_hours)
+				: (totalTime += dayjs(service.end_date).diff(dayjs(service.start_date)));
 		});
 
 		if (isNaN(totalTime) || totalTime < 0)
