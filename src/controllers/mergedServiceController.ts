@@ -41,7 +41,7 @@ class MergedServiceController {
 
 		servicesList.forEach((service) => {
 			service?.total_hours
-				? (totalTime += service?.total_hours)
+				? (totalTime += Number(service?.total_hours))
 				: (totalTime += dayjs(service.end_date).diff(dayjs(service.start_date)));
 		});
 
