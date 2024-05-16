@@ -22,11 +22,12 @@ class UserController {
 			console.log(error);
 			return response.status(400).json({ error: 'Unexpected error while creating new user' });
 		}
+
 		try {
 			const user = await connection('User')
 				.insert({
-					name,
-					email,
+					name: name.trim(),
+					email: email.toString().toLowerCase().trim(),
 					password: await bcrypt.hash(password, 10),
 					created_at: dayjs().toISOString(),
 				})
@@ -59,7 +60,9 @@ class UserController {
 				.status(400)
 				.json({ internalCode: internalCodes.MISSING_PASSWORD, message: 'Missing parameters' });
 		try {
-			const user = await connection('User').select('*').where({ email });
+			const user = await connection('User')
+				.select('*')
+				.where({ email: email.toString().toLowerCase().trim() });
 			if (user.length === 0) {
 				return response
 					.status(404)

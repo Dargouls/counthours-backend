@@ -53,7 +53,7 @@ class MergedServiceController {
 			const servicesMerged: any = await connection('Service').insert(
 				{
 					id: uuidv4(),
-					name,
+					name: name.trim(),
 					user_id,
 					total_hours: totalTime,
 					start_date: dayjs(minorService.start_date).toISOString(),

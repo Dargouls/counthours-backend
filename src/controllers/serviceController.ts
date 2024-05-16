@@ -19,7 +19,7 @@ class ServiceController {
 			const service = await connection('Service')
 				.insert({
 					id: uuidv4(),
-					name,
+					name: name.trim(),
 					user_id,
 					start_date: dayjs(start_date).toISOString(),
 					end_date: null,
